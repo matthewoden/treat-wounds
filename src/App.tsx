@@ -91,14 +91,12 @@ const rollMedicine = (bonus: string, aid: number, target: keyof typeof treatWoun
     return roll(`-1d8`) as number
   }
 
-  if (check.details[0].value === 20 || check.total >= config.dc) {
+  if (check.details[0].value === 20 || check.total + 10 >= config.dc) {
     return roll(config.critical) as number
   }
 
   return roll(config.normal) as number
 }
-
-
 
 
 function App() {
