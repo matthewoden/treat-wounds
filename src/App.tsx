@@ -67,12 +67,12 @@ const treatWoundsConfig = {
     critical: '4d8+10',
   },
   "master": {
-    dc: 20,
+    dc: 30,
     normal: '2d8+30',
     critical: '4d8+30',
   },
   "legendary": {
-    dc: 20,
+    dc: 40,
     normal: '2d8+50',
     critical: '4d8+50',
   }
@@ -83,7 +83,9 @@ const rollMedicine = (bonus: string, aid: number, target: keyof typeof treatWoun
     return 0
   }
 
-  const check = roll(`1d20+${bonus}+${aid}`, true) as unknown as RollResultDetail
+  const aidOperator = aid > 0 ? '+' : '-'
+
+  const check = roll(`1d20+${bonus}${aidOperator}${aid}`, true) as unknown as RollResultDetail
 
   const config = treatWoundsConfig[target]
 
@@ -91,7 +93,8 @@ const rollMedicine = (bonus: string, aid: number, target: keyof typeof treatWoun
     return roll(`-1d8`) as number
   }
 
-  if (check.details[0].value === 20 || check.total + 10 >= config.dc) {
+  if (check.details[0].value === 20 || check.total >= (config.dc + 10)) {
+    console.log("CRITICAL", check.details)
     return roll(config.critical) as number
   }
 
@@ -181,7 +184,7 @@ function App() {
         <Divider sx={{paddingTop: 1, paddingBottom: 1}}/>
         <Box>
           <Box display={'flex'} justifyContent={'space-between'}>
-          <Typography variant="h6" sx={{fontWeight: 700}} mb-1>Log</Typography>
+          <Typography variant="h6" sx={{fontWeight: 700}}>Log</Typography>
           <Button onClick={() => setLog([])}>Reset</Button>
           </Box>
           <List sx={{  transform: 'rotate(180deg)'}}>
