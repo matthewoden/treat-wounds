@@ -41,89 +41,193 @@ interface RollDetail {
 
 type DiceTypeInput = number | 'F'
 
-const treatWoundsConfig = {
+type AbilityCheckConfig = {
+  dc: number
+  criticalSuccess: () => number,
+  success: () => number,
+  failure: () =>number,
+  criticalFailure: () => number,
+}
+
+type Result = 'Success' | 'Failure' | 'Critical Success' | 'Critical Failure'
+type AbilityCheckOutcome = {
+  result: Result,
+  value: number,
+  d20Result: number,
+  modifier: number,
+  bonus: number,
+  total: number
+}
+
+type Proficiency = 'trained' | 'expert' | 'master' | 'legendary'
+
+// TODO: rewrite the roller logic.
+const treatWoundsConfig: Record<Proficiency, AbilityCheckConfig> = {
+  "trained": {
+    dc: 15,
+    criticalSuccess: () => roll('4d8') as number,
+    success:  () => roll('2d8') as number,
+    failure: () => 0,
+    criticalFailure: () => roll('-1d8') as number
+  },
+  "expert": {
+    dc: 20,
+    criticalSuccess: () => roll('4d8+10') as number,
+    success:  () => roll('2d8+10') as number,
+    failure: () => 0,
+    criticalFailure: () => roll('-1d8') as number
+  },
+  "master": {
+    dc: 30,
+    criticalSuccess: () => roll('4d8+30') as number,
+    success:  () => roll('2d8+30') as number,
+    failure: () => 0,
+    criticalFailure: () => roll('-1d8') as number
+  },
+  "legendary": {
+    dc: 40,
+    criticalSuccess: () => roll('4d8+50') as number,
+    success:  () => roll('2d8+50') as number,
+    failure: () => 0,
+    criticalFailure: () => roll('-1d8') as number
+  }
+}
+
+
+const aidConfig: Record<Proficiency, AbilityCheckConfig>  = {
+  "trained": {
+    dc: 15,
+    criticalSuccess: () => 2,
+    success: () => 1,
+    failure: () => 0,
+    criticalFailure: () => -1
+  },
+  "expert": {
+    dc: 15,
+    criticalSuccess: () => 2,
+    success: () => 1,
+    failure: () => 0,
+    criticalFailure: () => -1
+  },
+  "master": {
+    dc: 15,
+    criticalSuccess: () => 3,
+    success: () => 1,
+    failure: () => 0,
+    criticalFailure: () => -1
+  },
+  "legendary": {
+    dc: 15,
+    criticalSuccess: () => 4,
+    success: () => 1,
+    failure: () => 0,
+    criticalFailure: () => -1
+  }
+}
+
+const configMap = {
   "trained": {
     dc: 15,
     criticalAid: 2,
-    normal: '2d8',
-    critical: '4d8'
+    normalHeal: '2d8',
+    criticalHeal: '4d8'
   },
   "expert": {
     dc: 20,
     criticalAid: 2,
-    normal: '2d8+10',
+    normalHeal: '2d8+10',
     critical: '4d8+10',
   },
   "master": {
     dc: 30,
     criticalAid: 3,
-    normal: '2d8+30',
-    critical: '4d8+30',
+    normalHeal: '2d8+30',
+    criticalHeal: '4d8+30',
   },
   "legendary": {
     dc: 40,
     criticalAid: 4,
-    normal: '2d8+50',
-    critical: '4d8+50',
+    normalHeal: '2d8+50',
+    criticalHeal: '4d8+50',
   }
 }
 
-const rollAid = (bonus: string, prof: keyof typeof treatWoundsConfig) => {
-  if (bonus === "") {
-    return 0
-  }
-  const config = treatWoundsConfig[prof]
-
-  const result = roll(`1d20 + ${bonus}`, true) as unknown as RollResultDetail
-  if (result.details[0].value === 1) {
-    return -1
-  }
-
-  if (result.details[0].value === 20 || result.total >= 25) {
-    return config.criticalAid
-  }
-
-  return 1
-}
+const withOperator = (value: number) => value > 0 ? `+${value}`: `${value}`
 
 
+const abilityCheck = (modifier: number, bonus: number, config: AbilityCheckConfig): AbilityCheckOutcome => {
 
-const rollMedicine = (bonus: string, aid: number, target: keyof typeof treatWoundsConfig): number => {
-  if (bonus === "") {
-    return 0
-  }
+  const check = roll(`1d20${withOperator(modifier)}${withOperator(bonus)}`, true) as unknown as RollResultDetail
+  const d20Result = check.details[0].value
 
-  const aidOperator = aid > 0 ? '+' : '-'
 
-  const check = roll(`1d20+${bonus}${aidOperator}${aid}`, true) as unknown as RollResultDetail
+  const outcomes: {result: Result, value: number }[] = [{
+    result: 'Critical Failure',
+    value: config.criticalFailure()
+  },
+  {
+    result: 'Failure',
+    value: config.failure()
+  },
+  {
+    result: 'Success',
+    value: config.success()
+  },
+  {
+    result: 'Critical Success',
+    value: config.criticalSuccess()
+  }]
 
-  const config = treatWoundsConfig[target]
+  let score = 0
 
-  if (check.details[0].value === 1) {
-    return roll(`-1d8`) as number
-  }
-
-  if (check.details[0].value === 20 || check.total >= (config.dc + 10)) {
-    return roll(config.critical) as number
+  if (check.total > config.dc) {
+    score = 2
+  } else {
+    score = 1
   }
 
-  return roll(config.normal) as number
+  if (check.total > config.dc + 10) {
+    score = score + 1
+  }
+
+  if (check.total < config.dc - 10) {
+    score = score - 1
+  }
+
+  if (d20Result === 1) {
+    score = score - 1
+  }
+
+  if (d20Result === 20) {
+    score = score + 1
+  }
+
+  score = Math.min(Math.max(score, 0), 3)
+
+  return {
+    d20Result,
+    modifier,
+    bonus,
+    total: check.total,
+    ...outcomes[score],
+  }
 }
 
 
 function App() {
-  const [health, setHealth] = useState(0)
-  const [log, setLog] = useState<number[]>([])
+  const [health, setHealth] = useState<AbilityCheckOutcome | null>(null)
+  const [log, setLog] = useState<AbilityCheckOutcome[]>([])
   const [bonusToAid, setBonusToAid] = useState("")
-  const [aidProf, setAidProf] = useState<keyof typeof treatWoundsConfig>("trained")
+  const [aidProf, setAidProf] = useState<Proficiency>("trained")
   const [bonusToMed, setBonusToMed] = useState("")
-  const [target, setTarget] = useState<keyof typeof treatWoundsConfig>("trained")
+  const [medProf, setMedProf] = useState<Proficiency>("trained")
 
   const handleRoll = () => {
-    const aidBonus = rollAid(bonusToAid, aidProf)
-    const healing = rollMedicine(bonusToMed, aidBonus, target)
-    setHealth(healing)
-    setLog(log.concat(healing))
+    const aidOutcome = abilityCheck(parseInt(bonusToAid), 0, aidConfig[aidProf])
+    const healingOutcome = abilityCheck(parseInt(bonusToMed), aidOutcome.value, treatWoundsConfig[medProf])
+
+    setHealth(healingOutcome)
+    setLog(log.concat(healingOutcome))
   }
 
 
@@ -156,7 +260,7 @@ function App() {
               <RadioGroup
                 aria-labelledby="aid-prof"
                 value={aidProf}
-                onChange={(event) => setAidProf(event.target.value as keyof typeof treatWoundsConfig)}
+                onChange={(event) => setAidProf(event.target.value as keyof typeof configMap)}
                 name="aid-prof"
                 row
 
@@ -181,8 +285,8 @@ function App() {
               <FormLabel id="target-dc" sx={{textAlign: "left"}}>Target DC</FormLabel>
               <RadioGroup
                 aria-labelledby="target-dc"
-                value={target}
-                onChange={(event) => setTarget(event.target.value as keyof typeof treatWoundsConfig)}
+                value={medProf}
+                onChange={(event) => setMedProf(event.target.value as keyof typeof configMap)}
                 name="target-dc"
                 row
 
@@ -204,11 +308,18 @@ function App() {
           </Box>
           <Divider orientation="vertical" />
           {/* Output */}
-          <Box display={'flex'} flexDirection={'column'} paddingLeft={3} paddingTop={3}>
-            <Typography variant="h5" sx={{fontWeight: 700}}>Health:</Typography>
-            <Box display={'flex'} flexDirection={'row'} gap={1}>
-              <Typography variant="h4">{health}</Typography>
-            </Box>
+          <Box display={'flex'} flexDirection={'column'} flexGrow={1} paddingLeft={3} paddingTop={3}>
+            <Typography variant="h5" alignSelf={'center'} sx={{fontWeight: 700}}>Health:</Typography>
+            {health && (
+            <Box display={'flex'} flexDirection={'column'} gap={1}>
+              <Typography variant="h4" alignSelf={'center'}>{health.value}</Typography>
+              <Box display={'flex'} flexDirection={'row'} justifyContent={'space-around'}>
+                <Typography variant="overline">{health.result}</Typography>
+                <Divider orientation='vertical'/>
+                <Typography variant="overline">{health.total}</Typography>
+              </Box>
+            </Box>)
+            }
           </Box>
         </Box>
         <Divider/>
@@ -218,11 +329,11 @@ function App() {
           <Button onClick={() => setLog([])}>Reset</Button>
           </Box>
           <List sx={{  transform: 'rotate(180deg)'}}>
-            {log.map((result, index) => {
+            {log.map((check, index) => {
             return (
-            <ListItem key={`${index}_${result}`} disablePadding sx={{transform: 'rotate(-180deg)'}}>
+            <ListItem key={`${index}_${check}`} disablePadding sx={{transform: 'rotate(-180deg)'}}>
                 <ListItemText
-                  primary={result}
+                  primary={check.value}
                   secondary={`Roll #: ${index + 1}`}
                 />
               </ListItem>
