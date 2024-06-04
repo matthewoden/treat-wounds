@@ -27,7 +27,7 @@ export const HealthOutcome = ({outcome}: {outcome: AbilityCheckOutcome | null}) 
           </Box>
         </Box>
       )}
-      {!outcome && <Typography color={"text.secondary"} alignSelf={"center"}>Roll to see results.</Typography>}
+      {!outcome && <Typography color={"text.secondary"} paddingRight={2} alignSelf={"center"}>Roll to see results.</Typography>}
     </Box>
   )
 }

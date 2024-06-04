@@ -15,7 +15,7 @@ type LogProps = {
 
 const Log = (props: LogProps) => {
   return (
-    <Box padding={2}>
+    <Box paddingTop={2}>
       <Box display={'flex'} justifyContent={'space-between'}>
         <Typography variant="h6" sx={{fontWeight: 700}}>Log</Typography>
         <Button onClick={() => props.onClear()}>Reset</Button>

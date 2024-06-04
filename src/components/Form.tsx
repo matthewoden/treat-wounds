@@ -36,7 +36,6 @@ const Form = (props: FormProps) => {
       flexDirection={'column'}
       gap={2}
       paddingTop={3}
-      paddingLeft={2}
       paddingRight={2}
       paddingBottom={2.5}
     >
