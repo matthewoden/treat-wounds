@@ -1,13 +1,13 @@
 import getRand from './rand'
 import parseInput, { DiceTypeInput, RollInstruction } from './parseInput'
 
-interface RollResultDetail {
+export interface RollResultDetail {
   total: number,
   instructions: RollInstruction[],
   details: RollDetail[]
 }
 
-interface RollDetail {
+export interface RollDetail {
   id: number,
   instructionId: number,
   modifier: number,
@@ -16,7 +16,7 @@ interface RollDetail {
   discard: boolean
 }
 
-const roll = (input: string | number, verbose?: boolean): number | RollResultDetail => {
+const roll = (input: string | number): RollResultDetail => {
   const instructions = parseInput('' + input)
 
   let id = 0
@@ -42,11 +42,7 @@ const roll = (input: string | number, verbose?: boolean): number | RollResultDet
 
   const total = details.reduce((total, r) => r.discard ? total : (total + r.value), 0)
 
-  if (verbose) {
-    return { total, instructions, details }
-  } else {
-    return total
-  }
+  return { total, instructions, details }
 }
 
 const handleDiscards = (results: RollDetail[], kh: number, kl: number): RollDetail[] => {
@@ -54,7 +50,6 @@ const handleDiscards = (results: RollDetail[], kh: number, kl: number): RollDeta
 
   results = results.sort((a, b) => a.value < b.value ? -1 : 1).map(r => ({ ...r, discard: true }))
 
-  console.log('before', results)
   if (kl) {
     results = results.map((r, index) => ({ ...r, discard: index < kl ? false : r.discard }))
   }
