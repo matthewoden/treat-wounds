@@ -23,10 +23,10 @@ function App() {
 
   return (
     <Box display={'flex'} justifyContent={'center'}>
-      <Box display={'flex'} width={650} flexDirection={'column'} gap={0}>
+      <Box display={'flex'} width={650} flexDirection={'column'}>
         <Typography variant="h4" sx={{fontWeight: 700, marginBottom: 2, marginTop: 1}}>Treat Wounds</Typography>
         <Divider/>
-        <Box display={'flex'} flexDirection={'row'} gap={1} >
+        <Box display={'flex'} flexDirection={'row'}>
           <Form onSubmit={handleSubmit}/>
           <Divider orientation="vertical" />
           <HealthOutcome outcome={outcome}/>

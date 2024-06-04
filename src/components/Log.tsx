@@ -44,7 +44,7 @@ const Log = (props: LogProps) => {
                         variant="overline"
                         color={"text.secondary"}
                       >
-                        {check.d20Result} Roll + {check.modifier} Med  +  {check.bonus} Aid = {check.result}
+                        {check.d20Result} Roll + {check.modifier} Med  +  {check.bonus} Aid = {check.total} {check.result}
                       </Typography>
                     </>
                   )}
