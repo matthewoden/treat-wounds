@@ -1,49 +1,34 @@
 import FormControl from "@mui/material/FormControl"
 import FormLabel from "@mui/material/FormLabel"
-import { Proficiency } from "../diceroller/checks"
 import FormControlLabel from "@mui/material/FormControlLabel"
 import Radio from "@mui/material/Radio"
 import RadioGroup from "@mui/material/RadioGroup"
+import React from "react"
 
-type ProficiencyRadioProps = {
+type RadioOption<T> = { label: string, value: T }
+
+type RadioGroupProps<T> = {
   id: string
   label: string
-  onChange: (value: Proficiency) => void
-  value: Proficiency
+  options: RadioOption<T>[]
+  onChange: (value: T) => void
+  value: T
 }
 
-const options: { label: string, value: Proficiency }[] = [
-  {
-    label: "Trained",
-    value: "trained",
-  },
-  {
-    label: "Expert",
-    value: "expert",
-  },
-    {
-    label: "Master",
-    value: "master",
-  },
-    {
-    label: "Legendary",
-    value: "legendary",
-  },
-]
 
-const ProficiencyRadio = (props: ProficiencyRadioProps) => {
+const ProficiencyRadio = <T, >(props: RadioGroupProps<T>) => {
   return (
     <FormControl>
-        <FormLabel id="target-dc" sx={{textAlign: "left"}}>Target DC</FormLabel>
+        <FormLabel id={props.id} sx={{textAlign: "left"}}>{props.label}</FormLabel>
         <RadioGroup
-          aria-labelledby="target-dc"
+          aria-labelledby={props.id}
           value={props.value}
-          onChange={(event) => props.onChange(event.target.value as Proficiency)}
+          onChange={(event) => props.onChange(event.target.value as T)}
           name="target-dc"
           row
-        > {options.map((option) => (
+        > {props.options.map((option) => (
             <FormControlLabel
-              key={option.value}
+              key={option.value as React.Key}
               value={option.value}
               control={<Radio />}
               label={option.label}

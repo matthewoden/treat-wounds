@@ -3,27 +3,38 @@ import Button from "@mui/material/Button"
 import TextField from "@mui/material/TextField"
 import { useState } from "react"
 import { abilityCheck, AbilityCheckOutcome, aidConfig, Proficiency, treatWoundsConfig } from "../diceroller/checks"
-import ProficiencyRadio from "./RadioGroup"
+import ProficiencyRadio from "./ProficiencyRadio"
+import RadioGroup from "./RadioGroup"
 
 type FormProps = {
   onSubmit: (outcome: AbilityCheckOutcome) => void
 }
 
+type BonusSource = 'aid' | 'static'
+
+const bonusSourceOptions: {label: string, value: BonusSource}[] = [{ label: "Aid", value: 'aid'}, { label: 'Static', value: 'static'}]
+
 const Form = (props: FormProps) => {
-  const [bonusToAid, setBonusToAid] = useState("")
+  const [bonus, setBonus] = useState("")
   const [aidProf, setAidProf] = useState<Proficiency>("trained")
   const [bonusToMed, setBonusToMed] = useState("")
   const [medProf, setMedProf] = useState<Proficiency>("trained")
+  const [bonusSource, setBonusSource] = useState("aid")
 
   const handleReset = () => {
-    setBonusToAid("")
+    setMedProf("trained")
+    setAidProf("trained")
+    setBonus("")
     setBonusToMed("")
   }
 
   const handleSubmit = () => {
-    const aidOutcome = abilityCheck(parseInt(bonusToAid), 0, aidConfig[aidProf])
-    console.log(aidOutcome)
-    const healingOutcome = abilityCheck(parseInt(bonusToMed), aidOutcome.value, treatWoundsConfig[medProf])
+    let bonusValue = 0
+    if (bonus !== "") {
+      const parsedBonus = parseInt(bonus)
+      bonusValue = bonusSource === 'aid' ? abilityCheck(parsedBonus, 0, aidConfig[aidProf]).value : parsedBonus
+    }
+    const healingOutcome = abilityCheck(parseInt(bonusToMed), bonusValue, treatWoundsConfig[medProf])
 
     props.onSubmit(healingOutcome)
   }
@@ -34,21 +45,29 @@ const Form = (props: FormProps) => {
       display="flex"
       alignItems="flex-start"
       flexDirection={'column'}
-      gap={2}
+      gap={3}
       paddingTop={3}
       paddingRight={2}
       paddingBottom={2.5}
     >
+      <RadioGroup
+        id="source"
+        options={bonusSourceOptions}
+        label={"Bonus Source"}
+        value={bonusSource}
+        onChange={(value) => setBonusSource(value)}
+      />
       <TextField
         InputLabelProps={{ shrink: true }}
         InputProps={{ inputProps: { min: 0 } }}
-        variant="filled" label="Aid Bonus"
+        variant="filled" label={bonusSource === 'aid' ? "Aid Bonus" : 'Static Bonus'}
         type="number"
-        onChange={(event) => setBonusToAid(event.target.value)}
-        value={bonusToAid}
+        onChange={(event) => setBonus(event.target.value)}
+        value={bonus}
       />
-      <ProficiencyRadio id="aid-prof" onChange={setAidProf} value={aidProf} label={"Skill Proficiency"}/>
-      <br />
+      { bonusSource === 'aid' &&
+        <ProficiencyRadio id="aid-prof" onChange={setAidProf} value={aidProf} label={"Aid Skill Proficiency"}/>
+      }
       <TextField
         InputLabelProps={{ shrink: true }}
         InputProps={{ inputProps: { min: 0 } }}
