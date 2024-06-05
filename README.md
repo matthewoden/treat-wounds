@@ -34,5 +34,5 @@ Contributions are welcome -- I'm a dad, so I don't have a ton of free time to re
 
 ## Not planned for support:
 - any feats/abilities that are other-player-oriented. For example, if the rules say "when someone treats your wounds"? Then that player can manage their one-off bonuses.
-   - Supporting these will add options that
+   - Supporting these will add options will only add clutter to the UI, and make selecting the right UI options from roll to roll. (We'd need to store per-player settings or something. Out of scope for now)
 - transposable compliance/right hand blood. These do damage to you, and aren't something that will be done repeatedly.
