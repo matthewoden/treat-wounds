@@ -1,30 +1,12 @@
-# React + TypeScript + Vite
+# Treat Wounds
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A quick and dirty solution for Treat Wounds taking a lot of table-time in PF2E.
 
-Currently, two official plugins are available:
+- If someone is aiding you, aid checks are rolled and the bonus is calculated based on that output.
+- If you have multiple sources of bonuses, or just a simple static bonus, or other bonus sources, you can enter those there.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+![image](https://github.com/matthewoden/treat-wounds/assets/4907424/e5641849-5c20-4e14-a70a-9219c7332ad6)
 
-## Expanding the ESLint configuration
+## Contributing
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
-
-- Configure the top-level `parserOptions` property like this:
-
-```js
-export default {
-  // other rules...
-  parserOptions: {
-    ecmaVersion: 'latest',
-    sourceType: 'module',
-    project: ['./tsconfig.json', './tsconfig.node.json'],
-    tsconfigRootDir: __dirname,
-  },
-}
-```
-
-- Replace `plugin:@typescript-eslint/recommended` to `plugin:@typescript-eslint/recommended-type-checked` or `plugin:@typescript-eslint/strict-type-checked`
-- Optionally add `plugin:@typescript-eslint/stylistic-type-checked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and add `plugin:react/recommended` & `plugin:react/jsx-runtime` to the `extends` list
+Contributions are welcome -- I'm a dad, so I don't have a ton of free time to review changes. I won't be offended if you fork and deploy your own version.
