@@ -1,5 +1,7 @@
 # Treat Wounds
 
+Try it out at: https://treatwounds.netlify.app
+
 A quick and dirty solution for Treat Wounds taking a lot of table-time in PF2E.
 
 - If someone is aiding you, aid checks are rolled and the bonus is calculated based on that output.
