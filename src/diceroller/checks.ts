@@ -107,7 +107,7 @@ const createOutcomes = (config: AbilityCheckConfig): {result: Result, value: num
   }
 ]
 
-export const abilityCheck = (modifier: number, bonus: number, config: AbilityCheckConfig): AbilityCheckOutcome => {
+export const abilityCheck = (modifier: number, bonus: number, failureAsSuccess: boolean, config: AbilityCheckConfig): AbilityCheckOutcome => {
   const check = roll(`1d20${withOperator(modifier)}${withOperator(bonus)}`) as RollResultDetail
   const d20Result = check.details[0].value
   const outcomes = createOutcomes(config)
@@ -129,8 +129,12 @@ export const abilityCheck = (modifier: number, bonus: number, config: AbilityChe
     score = score + 1
   }
 
-  score = clamp(score, 0, 3)
+  if (failureAsSuccess && score === 1) {
+    score = 2
+  }
 
+  score = clamp(score, 0, 3)
+  console.log(outcomes[score])
   return {
     d20Result,
     modifier,

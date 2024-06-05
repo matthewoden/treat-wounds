@@ -24,7 +24,7 @@ const ProficiencyRadio = <T, >(props: RadioGroupProps<T>) => {
           aria-labelledby={props.id}
           value={props.value}
           onChange={(event) => props.onChange(event.target.value as T)}
-          name="target-dc"
+          name={props.id}
           row
         > {props.options.map((option) => (
             <FormControlLabel

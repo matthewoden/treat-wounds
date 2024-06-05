@@ -6,6 +6,8 @@ import { abilityCheck, AbilityCheckOutcome, aidConfig, Proficiency, treatWoundsC
 import ProficiencyRadio from "./ProficiencyRadio"
 import RadioGroup from "./RadioGroup"
 import Typography from "@mui/material/Typography"
+import FormControlLabel from "@mui/material/FormControlLabel"
+import { Checkbox } from "@mui/material"
 
 type FormProps = {
   onSubmit: (outcome: AbilityCheckOutcome) => void
@@ -21,21 +23,23 @@ const Form = (props: FormProps) => {
   const [bonusToMed, setBonusToMed] = useState("")
   const [medProf, setMedProf] = useState<Proficiency>("trained")
   const [bonusSource, setBonusSource] = useState("aid")
+  const [failureAsSuccess, setFailureAsSuccess] = useState(false)
 
   const handleReset = () => {
     setMedProf("trained")
     setAidProf("trained")
     setBonus("")
     setBonusToMed("")
+    setFailureAsSuccess(false)
   }
 
   const handleSubmit = () => {
     let bonusValue = 0
     if (bonus !== "") {
       const parsedBonus = parseInt(bonus)
-      bonusValue = bonusSource === 'aid' ? abilityCheck(parsedBonus, 0, aidConfig[aidProf]).value : parsedBonus
+      bonusValue = bonusSource === 'aid' ? abilityCheck(parsedBonus, 0, failureAsSuccess, aidConfig[aidProf]).value : parsedBonus
     }
-    const healingOutcome = abilityCheck(parseInt(bonusToMed), bonusValue, treatWoundsConfig[medProf])
+    const healingOutcome = abilityCheck(parseInt(bonusToMed), bonusValue, false, treatWoundsConfig[medProf])
 
     props.onSubmit(healingOutcome)
   }
@@ -78,7 +82,10 @@ const Form = (props: FormProps) => {
         value={bonus}
       />
       { bonusSource === 'aid' &&
-        <ProficiencyRadio id="aid-prof" onChange={setAidProf} value={aidProf} label={"Aid Skill Proficiency"}/>
+        <Box display={'flex'} flexDirection={'column'} gap={0.5}>
+          <ProficiencyRadio id="aid-prof" onChange={setAidProf} value={aidProf} label={"Aid Skill Proficiency"}/>
+          <FormControlLabel label={"Treat failure as a success?"} control={<Checkbox value={failureAsSuccess} onChange={() => setFailureAsSuccess(!failureAsSuccess)}/>} />
+        </Box>
       }
       <Box
         display="flex"
