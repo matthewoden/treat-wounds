@@ -84,7 +84,7 @@ const Form = (props: FormProps) => {
       { bonusSource === 'aid' &&
         <Box display={'flex'} flexDirection={'column'} gap={0.5}>
           <ProficiencyRadio id="aid-prof" onChange={setAidProf} value={aidProf} label={"Aid Skill Proficiency"}/>
-          <FormControlLabel label={"Treat failure as a success?"} control={<Checkbox value={failureAsSuccess} onChange={() => setFailureAsSuccess(!failureAsSuccess)}/>} />
+          <FormControlLabel label={"Treat failure as a success?"} control={<Checkbox checked={failureAsSuccess} onChange={() => setFailureAsSuccess(!failureAsSuccess)}/>} />
         </Box>
       }
       <Box

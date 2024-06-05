@@ -1,5 +1,4 @@
 import roll from "."
-import { RollResultDetail } from "./roll"
 
 export type AbilityCheckConfig = {
   dc: number
@@ -84,7 +83,14 @@ export const aidConfig: Record<Proficiency, AbilityCheckConfig>  = {
   }
 }
 
-const withOperator = (value: number) => value >= 0 ? `+${value}`: `${value}`
+const withOperator = (value: number) => {
+  if (value === 0){
+    return ''
+  } else if (value > 0){
+    return `+${value}`
+  }
+  return `${value}`
+}
 
 const clamp = (value: number, min: number, max: number) =>  Math.min(Math.max(value, min), max)
 
@@ -108,7 +114,8 @@ const createOutcomes = (config: AbilityCheckConfig): {result: Result, value: num
 ]
 
 export const abilityCheck = (modifier: number, bonus: number, failureAsSuccess: boolean, config: AbilityCheckConfig): AbilityCheckOutcome => {
-  const check = roll(`1d20${withOperator(modifier)}${withOperator(bonus)}`) as RollResultDetail
+  console.log(`1d20${withOperator(modifier)}${withOperator(bonus)}`)
+  const check = roll(`1d20${withOperator(modifier)}${withOperator(bonus)}`)
   const d20Result = check.details[0].value
   const outcomes = createOutcomes(config)
 
@@ -134,7 +141,7 @@ export const abilityCheck = (modifier: number, bonus: number, failureAsSuccess: 
   }
 
   score = clamp(score, 0, 3)
-  console.log(outcomes[score])
+
   return {
     d20Result,
     modifier,
