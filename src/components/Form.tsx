@@ -5,6 +5,7 @@ import { useState } from "react"
 import { abilityCheck, AbilityCheckOutcome, aidConfig, Proficiency, treatWoundsConfig } from "../diceroller/checks"
 import ProficiencyRadio from "./ProficiencyRadio"
 import RadioGroup from "./RadioGroup"
+import Typography from "@mui/material/Typography"
 
 type FormProps = {
   onSubmit: (outcome: AbilityCheckOutcome) => void
@@ -50,6 +51,17 @@ const Form = (props: FormProps) => {
       paddingRight={2}
       paddingBottom={2.5}
     >
+      <TextField
+        InputLabelProps={{ shrink: true }}
+        InputProps={{ inputProps: { min: 0 } }}
+        onChange={(event) => setBonusToMed(event.target.value)}
+        value={bonusToMed}
+        variant="filled"
+        type="number"
+        label="Medicine Bonus"
+      />
+      <ProficiencyRadio id="target-dc" onChange={setMedProf} value={medProf} label={"Target DC"}/>
+      <Typography variant="h6" fontWeight={700} marginBottom={-2}>Bonuses:</Typography>
       <RadioGroup
         id="source"
         options={bonusSourceOptions}
@@ -68,16 +80,6 @@ const Form = (props: FormProps) => {
       { bonusSource === 'aid' &&
         <ProficiencyRadio id="aid-prof" onChange={setAidProf} value={aidProf} label={"Aid Skill Proficiency"}/>
       }
-      <TextField
-        InputLabelProps={{ shrink: true }}
-        InputProps={{ inputProps: { min: 0 } }}
-        onChange={(event) => setBonusToMed(event.target.value)}
-        value={bonusToMed}
-        variant="filled"
-        type="number"
-        label="Medicine Bonus"
-      />
-      <ProficiencyRadio id="target-dc" onChange={setMedProf} value={medProf} label={"Target DC"}/>
       <Box
         display="flex"
         justifyContent="space-between"

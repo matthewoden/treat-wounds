@@ -1,8 +1,7 @@
 import Box from "@mui/material/Box";
 import { AbilityCheckOutcome } from "../diceroller/checks";
 import Typography from "@mui/material/Typography";
-import { Divider } from "@mui/material";
-
+import Divider from "@mui/material/Divider";
 
 const Attribute = ({label, value}: {label: string, value: string | number}) => {
   return (
