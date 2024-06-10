@@ -1,88 +1,5 @@
 import roll from "."
 
-export type AbilityCheckConfig = {
-  dc: number
-  criticalSuccess: () => number,
-  success: () => number,
-  failure: () =>number,
-  criticalFailure: () => number,
-}
-
-export type Result = 'Success' | 'Failure' | 'Critical Success' | 'Critical Failure'
-
-export type AbilityCheckOutcome = {
-  result: Result,
-  value: number,
-  d20Result: number,
-  modifier: number,
-  bonus: number,
-  total: number
-}
-
-export type Proficiency = 'trained' | 'expert' | 'master' | 'legendary'
-
-export const treatWoundsConfig: Record<Proficiency, AbilityCheckConfig> = {
-  "trained": {
-    dc: 15,
-    criticalSuccess: () => roll('4d8').total,
-    success:  () => roll('2d8').total,
-    failure: () => 0,
-    criticalFailure: () => roll('-1d8').total
-  },
-  "expert": {
-    dc: 20,
-    criticalSuccess: () => roll('4d8+10').total,
-    success:  () => roll('2d8+10').total,
-    failure: () => 0,
-    criticalFailure: () => roll('-1d8').total
-  },
-  "master": {
-    dc: 30,
-    criticalSuccess: () => roll('4d8+30').total,
-    success:  () => roll('2d8+30').total,
-    failure: () => 0,
-    criticalFailure: () => roll('-1d8').total
-  },
-  "legendary": {
-    dc: 40,
-    criticalSuccess: () => roll('4d8+50').total,
-    success:  () => roll('2d8+50').total,
-    failure: () => 0,
-    criticalFailure: () => roll('-1d8').total
-  }
-}
-
-export const aidConfig: Record<Proficiency, AbilityCheckConfig>  = {
-  "trained": {
-    dc: 15,
-    criticalSuccess: () => 2,
-    success: () => 1,
-    failure: () => 0,
-    criticalFailure: () => -1
-  },
-  "expert": {
-    dc: 15,
-    criticalSuccess: () => 2,
-    success: () => 1,
-    failure: () => 0,
-    criticalFailure: () => -1
-  },
-  "master": {
-    dc: 15,
-    criticalSuccess: () => 3,
-    success: () => 1,
-    failure: () => 0,
-    criticalFailure: () => -1
-  },
-  "legendary": {
-    dc: 15,
-    criticalSuccess: () => 4,
-    success: () => 1,
-    failure: () => 0,
-    criticalFailure: () => -1
-  }
-}
-
 const withOperator = (value: number) => {
   if (value === 0){
     return ''
@@ -94,38 +11,61 @@ const withOperator = (value: number) => {
 
 const clamp = (value: number, min: number, max: number) =>  Math.min(Math.max(value, min), max)
 
-const createOutcomes = (config: AbilityCheckConfig): {result: Result, value: number }[] => [
+export const results: Record<string, Result> = {
+  CRITICAL_FAILURE: 'Critical Failure',
+  FAILURE: 'Failure',
+  SUCCESS: 'Success',
+  CRITICAL_SUCCESS: 'Critical Success'
+}
+
+const createOutcomes = <T>(config: AbilityCheckConfig<T>): {result: Result, value: T }[] => [
   {
-    result: 'Critical Failure',
-    value: config.criticalFailure()
+    result: results.CRITICAL_FAILURE,
+    value: config.criticalFailure
   },
   {
-    result: 'Failure',
-    value: config.failure()
+    result: results.FAILURE,
+    value: config.failure
   },
   {
-    result: 'Success',
-    value: config.success()
+    result: results.SUCCESS,
+    value: config.success
   },
   {
-    result: 'Critical Success',
-    value: config.criticalSuccess()
+    result: results.CRITICAL_SUCCESS,
+    value: config.criticalSuccess
   }
 ]
 
-export const abilityCheck = (modifier: number, bonus: number, failureAsSuccess: boolean, config: AbilityCheckConfig): AbilityCheckOutcome => {
-  console.log(`1d20${withOperator(modifier)}${withOperator(bonus)}`)
-  const check = roll(`1d20${withOperator(modifier)}${withOperator(bonus)}`)
+const outcomeIndex: Record<Result, number> = {
+  'Critical Failure': 0,
+  'Failure': 1,
+  'Success': 2,
+  'Critical Success': 3
+}
+
+export const failureAsSuccess = { treat: results.FAILURE, as: results.SUCCESS }
+export const successAsCriticalSuccess = {treat: results.SUCCESS, as: results.CRITICAL_SUCCESS }
+
+export const abilityCheck = <T>(
+    checkModifier: number,
+    staticBonus: number,
+    outcomeConfig: AbilityCheckConfig<T>,
+    rollMapping?: RollMapping
+  ): AbilityCheckOutcome<T> => {
+
+  const allModifiers = checkModifier + staticBonus + (rollMapping?.bonus ?? 0)
+  const check = roll(`1d20${withOperator(allModifiers)}`)
   const d20Result = check.details[0].value
-  const outcomes = createOutcomes(config)
+  const outcomes = createOutcomes(outcomeConfig)
 
   // 1. did we exceed the dc?
-  let score = check.total > config.dc ? 2 : 1
+  let score = check.total > outcomeConfig.dc ? 2 : 1
 
   // 2. how far away are we from the dc?
-  if (check.total > config.dc + 10) {
+  if (check.total > outcomeConfig.dc + 10) {
     score = score + 1
-  } else if (check.total < config.dc - 10) {
+  } else if (check.total < outcomeConfig.dc - 10) {
     score = score - 1
   }
 
@@ -136,16 +76,19 @@ export const abilityCheck = (modifier: number, bonus: number, failureAsSuccess: 
     score = score + 1
   }
 
-  if (failureAsSuccess && score === 1) {
-    score = 2
+  // do we treat one result as another?
+  if (rollMapping) {
+    if (score === outcomeIndex[rollMapping.treat]) {
+      score = outcomeIndex[rollMapping.as]
+    }
   }
 
   score = clamp(score, 0, 3)
 
   return {
     d20Result,
-    modifier,
-    bonus,
+    modifier: checkModifier,
+    bonus: staticBonus,
     total: check.total,
     ...outcomes[score],
   }
