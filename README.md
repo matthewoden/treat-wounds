@@ -9,21 +9,21 @@ Supports:
 - Various sources of bonuses have a static bonus field
 - Rolling aid checks for another party member, and calculate that into their bonus
   - Aid checks can treat failure as a success in settings.
-- Feat: Risky Surgery - bonus to your medicine roll, and damage is listed seperately, so you can see amount healed, harmed, and the net.
+- Feat: Risky Surgery - success as a critical success, a bonus to your medicine roll, and damage is listed seperately, so you can see amount healed, harmed, and the net.
 - Feat: Magic hands - roll d10s instead of d8s.
-- Feat: Mortal Heaing - treat failure as a success.
+- Feat: Mortal Heaing - treat success as a critical success.
 - Dedication: Medic - additional healing when you treat wounds based on your target dc
 - A log out outputs, to help you track healing over time.
 - local persistence via browser storage. (cross-device storage not supported)
 
-![image](https://github.com/matthewoden/treat-wounds/assets/4907424/e5641849-5c20-4e14-a70a-9219c7332ad6)
+These were the features that were needed to support my goal for this experience (outlined below)
 
 ## Goals
 
-Most of the time, treat wounds is the exact same procedure, and the values are relatively static (making the process tedious).
+Most of the time, treat wounds is the exact same procedure, over and over and the values are relatively static (making the process a bit tedious).
 
 The experience for the UI should basically allow a player to configure how they treat wounds once, and then click "roll" as
-many times as needed.
+many times as needed, and see all they need to tell the other player. If the other player has their own perks and quirks around treat wounds, that's their responsibility to manage.
 
 ## Contributing
 
