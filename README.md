@@ -11,6 +11,7 @@ Supports:
   - Aid checks can treat failure as a success in settings.
 - Feat: Risky Surgery - bonus to your medicine roll, and damage is listed seperately, so you can see amount healed, harmed, and the net.
 - Feat: Magic hands - roll d10s instead of d8s.
+- Feat: Mortal Heaing - treat failure as a success.
 - Dedication: Medic - additional healing when you treat wounds based on your target dc
 - A log out outputs, to help you track healing over time.
 - local persistence via browser storage. (cross-device storage not supported)

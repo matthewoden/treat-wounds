@@ -58,6 +58,6 @@ export const createTreatWoundsRollMapping = (settings: Settings): RollMapping =>
   return {
     bonus,
     treat: results.SUCCESS,
-    as: results.CRITICAL_SUCCESS
+    as: (settings.riskySurgery || settings.mortalHealing) ? results.CRITICAL_SUCCESS : results.SUCCESS
   }
 }
