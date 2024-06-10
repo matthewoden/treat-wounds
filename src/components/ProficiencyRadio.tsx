@@ -1,4 +1,3 @@
-import { Proficiency } from "../diceroller/checks"
 import RadioGroup from "./RadioGroup"
 
 type ProficiencyRadioProps = {
