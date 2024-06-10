@@ -2,51 +2,95 @@ import Box from "@mui/material/Box"
 import Button from "@mui/material/Button"
 import TextField from "@mui/material/TextField"
 import { useState } from "react"
-import { abilityCheck, AbilityCheckOutcome, aidConfig, Proficiency, treatWoundsConfig } from "../diceroller/checks"
+import { abilityCheck } from "../diceroller/checks"
 import ProficiencyRadio from "./ProficiencyRadio"
-import RadioGroup from "./RadioGroup"
 import Typography from "@mui/material/Typography"
-import FormControlLabel from "@mui/material/FormControlLabel"
-import { Checkbox } from "@mui/material"
+import { createTreateWoundsConfig, createTreatWoundsRollMapping } from "../diceroller/checks/treatWounds"
+import { useSettings } from "../context/settings"
+import { aidConfig, createAidRollMapping } from "../diceroller/checks/aid"
+import { getLocalState, saveLocalState } from "../localstorage"
 
 type FormProps = {
-  onSubmit: (outcome: AbilityCheckOutcome) => void
+  onSubmit: (outcome: AbilityCheckOutcome<TreatWoundsCheck>) => void
 }
 
-type BonusSource = 'aid' | 'static'
+type FormState = {
+  aidBonus: string,
+  staticBonus: string,
+  aidProf: Proficiency,
+  bonusToMed: string,
+  medProf: Proficiency
+}
 
-const bonusSourceOptions: {label: string, value: BonusSource}[] = [{ label: "Aid", value: 'aid'}, { label: 'Static', value: 'static'}]
+const defaultFormState: FormState = {
+  aidBonus: "",
+  staticBonus: "",
+  aidProf: "trained",
+  bonusToMed: "",
+  medProf: "trained",
+}
+
+const LOCAL_STORAGE = 'form.v1'
+
+const initialState = getLocalState(LOCAL_STORAGE, defaultFormState)
 
 const Form = (props: FormProps) => {
-  const [bonus, setBonus] = useState("")
-  const [aidProf, setAidProf] = useState<Proficiency>("trained")
-  const [bonusToMed, setBonusToMed] = useState("")
-  const [medProf, setMedProf] = useState<Proficiency>("trained")
-  const [bonusSource, setBonusSource] = useState("aid")
-  const [failureAsSuccess, setFailureAsSuccess] = useState(false)
+
+  const [aidBonus, setAidBonus] = useState(initialState.aidBonus)
+  const [staticBonus, setStaticBonus] = useState(initialState.staticBonus)
+  const [aidProf, setAidProf] = useState<Proficiency>(initialState.aidProf)
+  const [bonusToMed, setBonusToMed] = useState(initialState.bonusToMed)
+  const [medProf, setMedProf] = useState<Proficiency>(initialState.medProf)
+  const { settings } = useSettings()
 
   const handleReset = () => {
     setMedProf("trained")
     setAidProf("trained")
-    setBonus("")
+    setAidBonus("")
     setBonusToMed("")
-    setFailureAsSuccess(false)
   }
 
   const handleSubmit = () => {
     let bonusValue = 0
-    if (bonus !== "") {
-      const parsedBonus = parseInt(bonus)
-      bonusValue = bonusSource === 'aid' ? abilityCheck(parsedBonus, 0, failureAsSuccess, aidConfig[aidProf]).value : parsedBonus
-    }
-    const healingOutcome = abilityCheck(parseInt(bonusToMed), bonusValue, false, treatWoundsConfig[medProf])
 
+    if (aidBonus !== "") {
+
+      bonusValue += abilityCheck(
+        parseInt(aidBonus, 10),
+        0,
+        aidConfig[aidProf],
+        createAidRollMapping(settings)
+      ).value
+
+    }
+
+    if (staticBonus !== "") {
+      bonusValue += parseInt(staticBonus, 10)
+    }
+
+    const treatWoundsOutcomes = createTreateWoundsConfig(settings)
+    const treatWoundsRollModifiers = createTreatWoundsRollMapping(settings)
+
+    const healingOutcome = abilityCheck(
+        parseInt(bonusToMed),
+        bonusValue,
+        treatWoundsOutcomes[medProf],
+        treatWoundsRollModifiers
+    )
     props.onSubmit(healingOutcome)
+    saveLocalState(LOCAL_STORAGE, {
+      aidBonus,
+      aidProf,
+      staticBonus,
+      medProf,
+      bonusToMed,
+    })
   }
 
   return (
     <Box
-      width={420}
+      minWidth={420}
+      width={"60%"}
       display="flex"
       alignItems="flex-start"
       flexDirection={'column'}
@@ -66,27 +110,25 @@ const Form = (props: FormProps) => {
       />
       <ProficiencyRadio id="target-dc" onChange={setMedProf} value={medProf} label={"Target DC"}/>
       <Typography variant="h6" fontWeight={700} marginBottom={-2}>Bonuses:</Typography>
-      <RadioGroup
-        id="source"
-        options={bonusSourceOptions}
-        label={"Bonus Source"}
-        value={bonusSource}
-        onChange={(value) => setBonusSource(value)}
-      />
       <TextField
         InputLabelProps={{ shrink: true }}
         InputProps={{ inputProps: { min: 0 } }}
-        variant="filled" label={bonusSource === 'aid' ? "Aid Bonus" : 'Static Bonus'}
+        variant="filled" label={'Static Bonus'}
         type="number"
-        onChange={(event) => setBonus(event.target.value)}
-        value={bonus}
+        onChange={(event) => setStaticBonus(event.target.value)}
+        value={staticBonus}
       />
-      { bonusSource === 'aid' &&
+        <TextField
+          InputLabelProps={{ shrink: true }}
+          InputProps={{ inputProps: { min: 0 } }}
+          variant="filled" label={"Aid Bonus"}
+          type="number"
+          onChange={(event) => setAidBonus(event.target.value)}
+          value={aidBonus}
+        />
         <Box display={'flex'} flexDirection={'column'} gap={0.5}>
           <ProficiencyRadio id="aid-prof" onChange={setAidProf} value={aidProf} label={"Aid Skill Proficiency"}/>
-          <FormControlLabel label={"Treat failure as a success?"} control={<Checkbox checked={failureAsSuccess} onChange={() => setFailureAsSuccess(!failureAsSuccess)}/>} />
         </Box>
-      }
       <Box
         display="flex"
         justifyContent="space-between"
